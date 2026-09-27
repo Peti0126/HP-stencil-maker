@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HP Stencil Studio Pro</title>
+  <title>HP Stencil Studio Pro - AI Powered</title>
+  
+  <!-- TENSORFLOW.JS ÉS MOBILENET AI MODELL KÖZVETLENÜL A BÖNGÉSZŐBEN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@latest/dist/mobilenet.min.js"></script>
+
   <style>
     :root {
       --bg: #121214;
@@ -35,7 +40,7 @@
       width: 100%;
       max-width: 1400px;
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 370px 1fr;
       gap: 16px;
       height: calc(100vh - 90px);
     }
@@ -138,7 +143,27 @@
       width: 100%;
       outline: none;
     }
-    .text-input:focus { border-color: var(--accent); }
+
+    .tag-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 4px;
+    }
+    .tag {
+      background: rgba(99, 102, 241, 0.2);
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      color: #a5b4fc;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag:hover {
+      background: var(--accent);
+      color: white;
+    }
 
     .viewport {
       background: #09090b;
@@ -189,36 +214,37 @@
 <body>
 
   <header>
-    <h1>✒️ HP Stencil Studio Pro</h1>
-    <p class="sub">Intelligens vonalrajz-generátor, paca-szűrő és vizuális stencilkereső</p>
+    <h1>🧠 HP Stencil Studio Pro - AI Matcher</h1>
+    <p class="sub">Valós idejű neurális képelemzés, stencil keresőszó-javaslat és paca-szűrő</p>
   </header>
 
   <div class="main-layout">
-    <!-- BAL OLDALI VEZÉRLÉS -->
+    <!-- BAL OLDAL -->
     <div class="sidebar">
       <div class="file-input-wrapper">
         <button class="btn" style="width: 100%;">📁 Kép betallózása</button>
         <input type="file" id="imageLoader" accept="image/*">
       </div>
 
-      <!-- KÉP FELISMERŐ ÉS REFERENCIA KERESŐ -->
+      <!-- AI FELISMERŐ ÉS REFERENCIA KERESŐ -->
       <div class="layer-card" style="border-color: var(--info);">
         <div class="layer-header">
-          <span>🔍 Stencil & Vázlat Kereső</span>
+          <span>🧠 AI Képfelismerő & Stencil Kereső</span>
         </div>
-        <input type="text" id="searchKeyword" class="text-input" placeholder="pl. portrait, skull, rose, tribal" value="tattoo stencil line art flash">
+        <p id="aiStatus" style="font-size:0.75rem; color:var(--muted);">AI Modell töltése a háttérben...</p>
+        
+        <!-- Ajánlott keresőszavak címkék formájában -->
+        <div id="tagBox" class="tag-container"></div>
+
+        <input type="text" id="searchKeyword" class="text-input" placeholder="Keresőszó..." value="tattoo stencil line art flash">
         
         <div class="tool-group" style="margin-top: 4px;">
-          <button id="searchLensBtn" class="tool-btn" style="background:var(--info); color:white;" title="Képalapú keresés Google Lens-szel">
-            📷 Kép Keresése
-          </button>
-          <button id="searchPinBtn" class="tool-btn" style="background:#e60023; color:white;" title="Pinterest tetováló vázlatok">
-            📌 Pinterest
-          </button>
+          <button id="searchGoogleBtn" class="tool-btn" style="background:#2563eb; color:white;">🔍 Google Képek</button>
+          <button id="searchPinBtn" class="tool-btn" style="background:#e60023; color:white;">📌 Pinterest</button>
         </div>
       </div>
 
-      <!-- INTELLIGENS PACA-MENTESÍTŐ -->
+      <!-- PACA-SZŰRŐ -->
       <div class="layer-card" style="border-color: var(--warning);">
         <div class="layer-header">
           <span>🛡️ Paca-mentesítő intelligens szűrő</span>
@@ -240,7 +266,7 @@
       <!-- ÁTVILÁGÍTÓ -->
       <div class="layer-card">
         <div class="layer-header">
-          <span>💡 Átvilágító (Eredeti kép átlátszósága)</span>
+          <span>💡 Átvilágító (Eredeti fotó alá)</span>
         </div>
         <div class="slider-group">
           <label>Átlátszóság: <span id="lightboxVal">0%</span></label>
@@ -259,7 +285,7 @@
           <button id="tool_pan" class="tool-btn">✋ Kéz</button>
         </div>
         <div class="slider-group" style="margin-top:6px;">
-          <label>Eszköz mérete: <span id="brushSizeVal">14px</span></label>
+          <label>Radír / Toll méret: <span id="brushSizeVal">14px</span></label>
           <input type="range" id="brushSize" min="2" max="60" value="14">
         </div>
         <div class="tool-group" style="margin-top:6px;">
@@ -272,7 +298,7 @@
       <button id="downloadBtn" class="btn" style="background:var(--success); margin-top:auto;" disabled>💾 Tiszta Stencil Mentése</button>
     </div>
 
-    <!-- JOBB OLDAL: VIEWPORT -->
+    <!-- JOBB OLDAL -->
     <div class="viewport" id="viewport">
       <div class="viewport-toolbar">
         <button class="vp-btn" id="zoomOut">➖</button>
@@ -294,15 +320,15 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Csúszkák & Inputok
     const suppressSlider = document.getElementById('suppress');
     const cleanSlider = document.getElementById('clean');
     const mainThreshSlider = document.getElementById('mainThresh');
     const lightboxSlider = document.getElementById('lightbox');
     const brushSizeSlider = document.getElementById('brushSize');
     const searchKeyword = document.getElementById('searchKeyword');
+    const aiStatus = document.getElementById('aiStatus');
+    const tagBox = document.getElementById('tagBox');
 
-    // Értékjelzők
     const suppressVal = document.getElementById('suppressVal');
     const cleanVal = document.getElementById('cleanVal');
     const mainThreshVal = document.getElementById('mainThreshVal');
@@ -310,7 +336,6 @@
     const brushSizeVal = document.getElementById('brushSizeVal');
     const zoomVal = document.getElementById('zoomVal');
 
-    // Gombok
     const toolEraser = document.getElementById('tool_eraser');
     const toolBrush = document.getElementById('tool_brush');
     const toolPan = document.getElementById('tool_pan');
@@ -318,7 +343,7 @@
     const undoBtn = document.getElementById('undoBtn');
     const centerBtn = document.getElementById('centerBtn');
     const downloadBtn = document.getElementById('downloadBtn');
-    const searchLensBtn = document.getElementById('searchLensBtn');
+    const searchGoogleBtn = document.getElementById('searchGoogleBtn');
     const searchPinBtn = document.getElementById('searchPinBtn');
 
     const zoomInBtn = document.getElementById('zoomIn');
@@ -335,8 +360,20 @@
     let isPanning = false, isDrawing = false;
     let startPanX = 0, startPanY = 0;
     let currentTool = 'eraser';
+    let aiModel = null;
 
-    // KÉP BETÖLTÉSE & KÖZÉPRE IGAZÍTÁSA
+    // AI MODEL ELŐTÖLTÉSE
+    async function loadAI() {
+      try {
+        aiModel = await mobilenet.load();
+        aiStatus.textContent = '✅ AI Képfelismerő aktív!';
+        aiStatus.style.color = '#10b981';
+      } catch (err) {
+        aiStatus.textContent = 'AI modell nem elérhető (manuális keresés működik).';
+      }
+    }
+    loadAI();
+
     imageLoader.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -359,12 +396,44 @@
             centerAndFitImage();
             processStencil();
             downloadBtn.disabled = false;
+            analyzeImageWithAI(img);
           }, 30);
         };
         img.src = event.target.result;
       };
       reader.readAsDataURL(file);
     });
+
+    // KÉPFELISMERÉS ÉS KULCSSZÓ-GENERÁLÁS
+    async function analyzeImageWithAI(imgElement) {
+      if (!aiModel) return;
+      aiStatus.textContent = '⏳ Kép elemzése folyamatban...';
+      tagBox.innerHTML = '';
+
+      try {
+        const predictions = await aiModel.classify(imgElement);
+        aiStatus.textContent = '💡 Felismert témák (kattints a kereséshez):';
+
+        if (predictions && predictions.length > 0) {
+          // Az első legpontosabb találat automatikus beállítása
+          const primaryTopic = predictions[0].className.split(',')[0].trim();
+          searchKeyword.value = `${primaryTopic} tattoo stencil line art`;
+
+          predictions.forEach(p => {
+            const cleanName = p.className.split(',')[0].trim();
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.textContent = `🏷️ ${cleanName}`;
+            tag.addEventListener('click', () => {
+              searchKeyword.value = `${cleanName} tattoo stencil line art flash`;
+            });
+            tagBox.appendChild(tag);
+          });
+        }
+      } catch (e) {
+        aiStatus.textContent = 'Nem sikerült az automatikus felismerés.';
+      }
+    }
 
     function centerAndFitImage() {
       if (!canvas.width || !canvas.height) return;
@@ -390,22 +459,16 @@
     centerBtn.addEventListener('click', centerAndFitImage);
     zoomResetBtn.addEventListener('click', centerAndFitImage);
 
-    // VALÓDI KÉPALAPÚ KERESÉS (Google Lens) ÉS KULCSSZAVAS KERESÉS
-    searchLensBtn.addEventListener('click', () => {
-      // Ha van saját keresőszó, azt használja, ha nem, a Lens nyílik meg
-      const query = encodeURIComponent(searchKeyword.value.trim());
-      const lensUrl = `https://lens.google.com/uploadbyurl?url=&hl=hu`;
-      // Ha van szöveg, a Google Képek specifikus stencil keresőjét is megnyithatja:
-      const fullUrl = `https://www.google.com/search?tbm=isch&q=${query}`;
-      window.open(fullUrl, '_blank');
+    searchGoogleBtn.addEventListener('click', () => {
+      const q = encodeURIComponent(searchKeyword.value.trim());
+      window.open(`https://www.google.com/search?tbm=isch&q=${q}`, '_blank');
     });
 
     searchPinBtn.addEventListener('click', () => {
-      const query = encodeURIComponent(searchKeyword.value.trim() + ' stencil');
-      window.open(`https://www.pinterest.com/search/pins/?q=${query}`, '_blank');
+      const q = encodeURIComponent(searchKeyword.value.trim());
+      window.open(`https://www.pinterest.com/search/pins/?q=${q}`, '_blank');
     });
 
-    // ÉLDETEKTÁLÁS ÉS PACA-MENTESÍTÉS
     function processStencil() {
       if (!originalImage) return;
 
