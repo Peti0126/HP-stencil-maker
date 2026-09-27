@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HP Stencil Studio Pro - Master Edition</title>
+  <title>HP Stencil Studio Pro - Dragon Edition</title>
   <style>
     :root {
       --bg: #121214;
@@ -12,6 +12,7 @@
       --text: #f3f4f6;
       --muted: #9ca3af;
       --success: #10b981;
+      --warning: #f59e0b;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -33,7 +34,7 @@
       width: 100%;
       max-width: 1350px;
       display: grid;
-      grid-template-columns: 340px 1fr;
+      grid-template-columns: 350px 1fr;
       gap: 16px;
       height: calc(100vh - 90px);
     }
@@ -177,91 +178,89 @@
 <body>
 
   <header>
-    <h1>✒️ HP Stencil Studio Pro</h1>
-    <p class="sub">Többrétegű stencilkészítő, átvilágító asztal (Lightbox) & nagyító funkcióval</p>
+    <h1>🐉 HP Stencil Studio Pro - Dragon Edition</h1>
+    <p class="sub">Intelligens kontúrfelismerés & paca-mentesítés sűrű rajzokhoz és pikkelyekhez</p>
   </header>
 
   <div class="main-layout">
     <!-- BAL OLDAL -->
     <div class="sidebar">
       <div class="file-input-wrapper">
-        <button class="btn" style="width: 100%;">📁 Kép betallózása</button>
+        <button class="btn" style="width: 100%;">📁 Sárkány / Kép betöltése</button>
         <input type="file" id="imageLoader" accept="image/*">
       </div>
 
-      <!-- ÁTVILÁGÍTÓ ASZTAL (LIGHTBOX) -->
-      <div class="layer-card" style="border-color: #f59e0b;">
+      <!-- PACA-ELKERÜLŐ SZŰRŐ (ANTI-CLUTTER) -->
+      <div class="layer-card" style="border-color: var(--warning);">
         <div class="layer-header">
-          <span>💡 Átvilágító (Eredeti kép átlátszósága)</span>
+          <span>🛡️ Pikkely & Zajszűrés (Paca ellen)</span>
         </div>
         <div class="slider-group">
-          <label>Háttér átfedés: <span id="lightboxVal">0%</span></label>
+          <label>Pikkely / Apró részlet tompítás: <span id="suppressVal">2</span></label>
+          <input type="range" id="suppress" min="0" max="6" value="2">
+        </div>
+        <div class="slider-group">
+          <label>Vonal tisztaság (Zajvágás): <span id="cleanVal">25</span></label>
+          <input type="range" id="clean" min="5" max="80" value="25">
+        </div>
+      </div>
+
+      <!-- KONTÚR VEZÉRLÉS -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <span>1. Fő körvonal felismerés</span>
+        </div>
+        <div class="slider-group">
+          <label>Fővonal erősség: <span id="mainThreshVal">35</span></label>
+          <input type="range" id="mainThresh" min="10" max="90" value="35">
+        </div>
+        <div class="slider-group">
+          <label>Vonal vékonyság: <span id="thinVal">1 px</span></label>
+          <input type="range" id="thin" min="1" max="3" value="1">
+        </div>
+      </div>
+
+      <!-- ÁTVILÁGÍTÓ ASZTAL (LIGHTBOX) -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <span>💡 Átvilágító (Eredeti fotó alávetítése)</span>
+        </div>
+        <div class="slider-group">
+          <label>Átlátszóság: <span id="lightboxVal">0%</span></label>
           <input type="range" id="lightbox" min="0" max="100" value="0">
         </div>
       </div>
 
-      <!-- 1. RÉTEG: FŐ KONTÚR -->
+      <!-- RETUS ESZKÖZÖK -->
       <div class="layer-card">
         <div class="layer-header">
-          <span>1. Fő körvonalak (Vastag tű)</span>
-          <input type="checkbox" id="layer1_enable" checked>
-        </div>
-        <div class="slider-group">
-          <label>Érzékenység: <span id="l1_thresh_val">40</span></label>
-          <input type="range" id="l1_thresh" min="10" max="100" value="40">
-        </div>
-        <div class="slider-group">
-          <label>Vonalvastagság: <span id="l1_thick_val">2</span></label>
-          <input type="range" id="l1_thick" min="1" max="4" value="2">
-        </div>
-      </div>
-
-      <!-- 2. RÉTEG: MIKRORÉSZLETEK -->
-      <div class="layer-card">
-        <div class="layer-header">
-          <span>2. Mikrorészletek (Finom tű)</span>
-          <input type="checkbox" id="layer2_enable" checked>
-        </div>
-        <div class="slider-group">
-          <label>Részlet erősség: <span id="l2_thresh_val">25</span></label>
-          <input type="range" id="l2_thresh" min="5" max="80" value="25">
-        </div>
-        <div class="slider-group">
-          <label>Átlátszatlanság: <span id="l2_opacity_val">60%</span></label>
-          <input type="range" id="l2_opacity" min="0" max="100" value="60">
-        </div>
-      </div>
-
-      <!-- RETUS ÉS ESZKÖZÖK -->
-      <div class="layer-card">
-        <div class="layer-header">
-          <span>🖌️ Szerkesztő eszközök</span>
+          <span>🖌️ Kézi tisztítás & Radír</span>
         </div>
         <div class="tool-group">
           <button id="tool_eraser" class="tool-btn active">🧽 Radír</button>
           <button id="tool_brush" class="tool-btn">✏️ Toll</button>
-          <button id="tool_pan" class="tool-btn">✋ Mozgatás</button>
+          <button id="tool_pan" class="tool-btn">✋ Kéz</button>
         </div>
         <div class="slider-group" style="margin-top:6px;">
-          <label>Eszköz mérete: <span id="brushSizeVal">16px</span></label>
-          <input type="range" id="brushSize" min="2" max="80" value="16">
+          <label>Radír / Toll méret: <span id="brushSizeVal">14px</span></label>
+          <input type="range" id="brushSize" min="2" max="60" value="14">
         </div>
         <div class="tool-group" style="margin-top:6px;">
-          <button id="flipBtn" class="tool-btn">🪞 Tükrözés (H)</button>
-          <button id="undoBtn" class="tool-btn" style="background:#374151;">↩️ Visszavonás</button>
+          <button id="flipBtn" class="tool-btn">🪞 Tükrözés</button>
+          <button id="undoBtn" class="tool-btn" style="background:#374151;">↩️ Undo</button>
         </div>
       </div>
 
-      <button id="downloadBtn" class="btn" style="background:var(--success); margin-top:auto;" disabled>💾 Tiszta Stencil Mentése</button>
+      <button id="downloadBtn" class="btn" style="background:var(--success); margin-top:auto;" disabled>💾 Paca-mentes Sablon Mentése</button>
     </div>
 
-    <!-- JOBB OLDAL: ZOOMOLHATÓ VÁSZON -->
+    <!-- JOBB OLDAL -->
     <div class="viewport" id="viewport">
       <div class="viewport-toolbar">
         <button class="vp-btn" id="zoomOut">➖</button>
         <span class="zoom-text" id="zoomVal">100%</span>
         <button class="vp-btn" id="zoomIn">➕</button>
-        <button class="vp-btn" id="zoomReset" title="Igazítás ablakhoz">🎯</button>
+        <button class="vp-btn" id="zoomReset">🎯</button>
       </div>
 
       <div id="canvasWrapper">
@@ -277,20 +276,19 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Slider elemek
-    const l1Enable = document.getElementById('layer1_enable');
-    const l1Thresh = document.getElementById('l1_thresh');
-    const l1Thick = document.getElementById('l1_thick');
-    const l2Enable = document.getElementById('layer2_enable');
-    const l2Thresh = document.getElementById('l2_thresh');
-    const l2Opacity = document.getElementById('l2_opacity');
+    // Csúszkák
+    const suppressSlider = document.getElementById('suppress');
+    const cleanSlider = document.getElementById('clean');
+    const mainThreshSlider = document.getElementById('mainThresh');
+    const thinSlider = document.getElementById('thin');
     const lightboxSlider = document.getElementById('lightbox');
+    const brushSizeSlider = document.getElementById('brushSize');
 
-    // Érték kiírók
-    const l1ThreshVal = document.getElementById('l1_thresh_val');
-    const l1ThickVal = document.getElementById('l1_thick_val');
-    const l2ThreshVal = document.getElementById('l2_thresh_val');
-    const l2OpacityVal = document.getElementById('l2_opacity_val');
+    // Értékjelzők
+    const suppressVal = document.getElementById('suppressVal');
+    const cleanVal = document.getElementById('cleanVal');
+    const mainThreshVal = document.getElementById('mainThreshVal');
+    const thinVal = document.getElementById('thinVal');
     const lightboxVal = document.getElementById('lightboxVal');
     const brushSizeVal = document.getElementById('brushSizeVal');
     const zoomVal = document.getElementById('zoomVal');
@@ -299,33 +297,25 @@
     const toolEraser = document.getElementById('tool_eraser');
     const toolBrush = document.getElementById('tool_brush');
     const toolPan = document.getElementById('tool_pan');
-    const brushSizeSlider = document.getElementById('brushSize');
     const flipBtn = document.getElementById('flipBtn');
     const undoBtn = document.getElementById('undoBtn');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    // Zoom gombok
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
     const zoomResetBtn = document.getElementById('zoomReset');
 
     let originalImage = null;
-    let grayData = null;
     let isFlipped = false;
-
-    // Kézi retus réteg puffer
     let manualLayerCanvas = document.createElement('canvas');
     let manualCtx = manualLayerCanvas.getContext('2d');
     let undoHistory = [];
 
-    // Zoom & Pan állapot
-    let scale = 1;
-    let panX = 0;
-    let panY = 0;
-    let isPanning = false;
-    let isDrawing = false;
+    // Zoom & Mozgatás állapot
+    let scale = 1, panX = 0, panY = 0;
+    let isPanning = false, isDrawing = false;
     let startPanX = 0, startPanY = 0;
-    let currentTool = 'eraser'; // 'eraser' | 'brush' | 'pan'
+    let currentTool = 'eraser';
 
     imageLoader.addEventListener('change', (e) => {
       const file = e.target.files[0];
@@ -345,9 +335,8 @@
           manualCtx.clearRect(0, 0, img.width, img.height);
           undoHistory = [];
 
-          computeGrayscale();
           resetZoomFit();
-          renderFullStencil();
+          processStencil();
           downloadBtn.disabled = false;
         };
         img.src = event.target.result;
@@ -355,112 +344,129 @@
       reader.readAsDataURL(file);
     });
 
-    function computeGrayscale() {
-      ctx.save();
+    // Paca-mentesítő intelligens élkereső algoritmus
+    function processStencil() {
+      if (!originalImage) return;
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // 1. Kép kirajzolása átmeneti pufferbe szürkeárnyalathoz
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = w;
+      tempCanvas.height = h;
+      const tCtx = tempCanvas.getContext('2d');
+
+      tCtx.save();
       if (isFlipped) {
-        ctx.scale(-1, 1);
-        ctx.drawImage(originalImage, -canvas.width, 0);
+        tCtx.scale(-1, 1);
+        tCtx.drawImage(originalImage, -w, 0);
       } else {
-        ctx.drawImage(originalImage, 0, 0);
+        tCtx.drawImage(originalImage, 0, 0);
       }
-      ctx.restore();
+      tCtx.restore();
 
-      const src = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-      grayData = new Float32Array(canvas.width * canvas.height);
-      for (let i = 0, j = 0; i < src.length; i += 4, j++) {
-        grayData[j] = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+      const srcData = tCtx.getImageData(0, 0, w, h).data;
+      const gray = new Float32Array(w * h);
+
+      for (let i = 0, j = 0; i < srcData.length; i += 4, j++) {
+        gray[j] = 0.299 * srcData[i] + 0.587 * srcData[i + 1] + 0.114 * srcData[i + 2];
       }
-    }
 
-    function computeEdgeMask(threshold, step) {
-      const w = canvas.width;
-      const h = canvas.height;
-      const mask = new Uint8Array(w * h);
+      // 2. DoG (Difference of Gaussians) szűrő:
+      // Ez választja le a durva körvonalat az apró pikkelyektől!
+      const blurRadius = parseInt(suppressSlider.value, 10);
+      const threshold = parseInt(mainThreshSlider.value, 10);
+      const cleanCutoff = parseInt(cleanSlider.value, 10);
+      const step = parseInt(thinSlider.value, 10);
 
-      for (let y = step; y < h - step; y++) {
-        for (let x = step; x < w - step; x++) {
-          const gx =
-            -1 * grayData[(y - step) * w + (x - step)] +
-             1 * grayData[(y - step) * w + (x + step)] +
-            -2 * grayData[y * w + (x - step)] +
-             2 * grayData[y * w + (x + step)] +
-            -1 * grayData[(y + step) * w + (x - step)] +
-             1 * grayData[(y + step) * w + (x + step)];
+      // Két elmosott réteg készítése box-blurrel
+      const smooth1 = boxBlur(gray, w, h, blurRadius > 0 ? blurRadius : 1);
+      const smooth2 = boxBlur(gray, w, h, (blurRadius > 0 ? blurRadius : 1) * 2 + 1);
 
-          const gy =
-            -1 * grayData[(y - step) * w + (x - step)] -
-             2 * grayData[(y - step) * w + x] -
-             1 * grayData[(y - step) * w + (x + step)] +
-             1 * grayData[(y + step) * w + (x - step)] +
-             2 * grayData[(y + step) * w + x] +
-             1 * grayData[(y + step) * w + (x + step)];
-
-          if (Math.sqrt(gx * gx + gy * gy) > threshold) {
-            mask[y * w + x] = 1;
-          }
-        }
-      }
-      return mask;
-    }
-
-    function renderFullStencil() {
-      if (!grayData) return;
-
-      const w = canvas.width;
-      const h = canvas.height;
-
-      // 1. Fehér lap
+      // Fehér vászon alapozása
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, w, h);
 
-      // 2. Lightbox átfedés (eredeti fotó halványan alá)
-      const lbAlpha = parseInt(lightboxSlider.value) / 100;
+      // Lightbox réteg
+      const lbAlpha = parseInt(lightboxSlider.value, 10) / 100;
       if (lbAlpha > 0) {
         ctx.save();
         ctx.globalAlpha = lbAlpha;
-        if (isFlipped) {
-          ctx.scale(-1, 1);
-          ctx.drawImage(originalImage, -w, 0);
-        } else {
-          ctx.drawImage(originalImage, 0, 0);
-        }
+        ctx.drawImage(tempCanvas, 0, 0);
         ctx.restore();
       }
-
-      // 3. Stencil vonalak kinyerése
-      const l1Active = l1Enable.checked;
-      const mask1 = l1Active ? computeEdgeMask(parseInt(l1Thresh.value), parseInt(l1Thick.value)) : null;
-
-      const l2Active = l2Enable.checked;
-      const mask2 = l2Active ? computeEdgeMask(parseInt(l2Thresh.value), 1) : null;
-      const l2Alpha = parseInt(l2Opacity.value) / 100;
 
       const outData = ctx.getImageData(0, 0, w, h);
       const out = outData.data;
 
-      for (let i = 0; i < w * h; i++) {
-        let darken = 0;
-        if (mask1 && mask1[i]) {
-          darken = 1;
-        } else if (mask2 && mask2[i]) {
-          darken = l2Alpha;
-        }
+      // 3. Kontúrok detektálása a frekvencia-különbségből
+      for (let y = step; y < h - step; y++) {
+        for (let x = step; x < w - step; x++) {
+          const idx = y * w + x;
 
-        if (darken > 0) {
-          const p = i * 4;
-          out[p] = Math.round(out[p] * (1 - darken));
-          out[p + 1] = Math.round(out[p + 1] * (1 - darken));
-          out[p + 2] = Math.round(out[p + 2] * (1 - darken));
+          // A két elmosás különbsége kiemeli az igazi éleket és eldobja a sűrű satírt
+          const diff = smooth1[idx] - smooth2[idx];
+
+          // Szomszédos gradiensek az élek megtartásához
+          const gx = smooth1[y * w + (x + step)] - smooth1[y * w + (x - step)];
+          const gy = smooth1[(y + step) * w + x] - smooth1[(y - step) * w + x];
+          const grad = Math.sqrt(gx * gx + gy * gy);
+
+          // Paca-védelem: Csak akkor teszünk fekete vonalat, ha erős a kontúr ÉS túllépi a tisztasági küszöböt
+          let isEdge = false;
+          if (diff < -cleanCutoff * 0.15 && grad > threshold) {
+            isEdge = true;
+          }
+
+          if (isEdge) {
+            const p = idx * 4;
+            out[p] = 0;
+            out[p + 1] = 0;
+            out[p + 2] = 0;
+          }
         }
       }
 
       ctx.putImageData(outData, 0, 0);
 
-      // 4. Kézi radír és toll réteg
+      // 4. Kézi radír és toll réteg rátétele
       ctx.drawImage(manualLayerCanvas, 0, 0);
     }
 
-    // Zoom & Pásztázás transzformáció
+    // Gyors simító elmosás
+    function boxBlur(data, w, h, r) {
+      const output = new Float32Array(w * h);
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          let sum = 0;
+          let count = 0;
+          for (let dy = -r; dy <= r; dy++) {
+            const ny = y + dy;
+            if (ny >= 0 && ny < h) {
+              sum += data[ny * w + x];
+              count++;
+            }
+          }
+          output[y * w + x] = sum / count;
+        }
+      }
+      return output;
+    }
+
+    // Csúszkák frissítése
+    [suppressSlider, cleanSlider, mainThreshSlider, thinSlider, lightboxSlider].forEach(el => {
+      el.addEventListener('input', () => {
+        suppressVal.textContent = suppressSlider.value;
+        cleanVal.textContent = cleanSlider.value;
+        mainThreshVal.textContent = mainThreshSlider.value;
+        thinVal.textContent = thinSlider.value + ' px';
+        lightboxVal.textContent = lightboxSlider.value + '%';
+        processStencil();
+      });
+    });
+
+    // Zoom & Pan
     function updateTransform() {
       canvasWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
       zoomVal.textContent = Math.round(scale * 100) + '%';
@@ -477,28 +483,23 @@
       updateTransform();
     }
 
-    zoomInBtn.addEventListener('click', () => { scale = Math.min(scale * 1.25, 5); updateTransform(); });
+    zoomInBtn.addEventListener('click', () => { scale = Math.min(scale * 1.25, 6); updateTransform(); });
     zoomOutBtn.addEventListener('click', () => { scale = Math.max(scale / 1.25, 0.1); updateTransform(); });
     zoomResetBtn.addEventListener('click', resetZoomFit);
 
-    // Egérgörgős zoom
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
       const newScale = Math.min(Math.max(scale * zoomFactor, 0.1), 6);
-
       const rect = viewport.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
-
-      panX = mouseX - (mouseX - panX) * (newScale / scale);
-      panY = mouseY - (mouseY - panY) * (newScale / scale);
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      panX = mx - (mx - panX) * (newScale / scale);
+      panY = my - (my - panY) * (newScale / scale);
       scale = newScale;
-
       updateTransform();
     }, { passive: false });
 
-    // Egérkoordináta a nagyított/mozgatott vásznon
     function getCanvasPos(e) {
       const rect = canvas.getBoundingClientRect();
       return {
@@ -507,11 +508,9 @@
       };
     }
 
-    // Interakciók: Rajzolás / Mozgatás
     viewport.addEventListener('mousedown', (e) => {
-      if (!grayData) return;
-
-      if (currentTool === 'pan' || e.button === 1 || e.spaceKey) {
+      if (!originalImage) return;
+      if (currentTool === 'pan' || e.button === 1) {
         isPanning = true;
         startPanX = e.clientX - panX;
         startPanY = e.clientY - panY;
@@ -542,18 +541,11 @@
     function drawAction(e) {
       const pos = getCanvasPos(e);
       const size = parseInt(brushSizeSlider.value, 10);
-
       manualCtx.beginPath();
       manualCtx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
-
-      if (currentTool === 'eraser') {
-        manualCtx.fillStyle = '#ffffff'; // Kitörli az összecsomósodott részeket
-      } else if (currentTool === 'brush') {
-        manualCtx.fillStyle = '#000000'; // Új vonalat húz
-      }
+      manualCtx.fillStyle = currentTool === 'eraser' ? '#ffffff' : '#000000';
       manualCtx.fill();
-
-      renderFullStencil();
+      processStencil();
     }
 
     function saveUndo() {
@@ -564,33 +556,16 @@
     undoBtn.addEventListener('click', () => {
       if (undoHistory.length > 0) {
         manualCtx.putImageData(undoHistory.pop(), 0, 0);
-        renderFullStencil();
+        processStencil();
       }
     });
 
-    // Tükrözés
     flipBtn.addEventListener('click', () => {
       if (!originalImage) return;
       isFlipped = !isFlipped;
-
-      // Puffer tükrözése is
-      const temp = document.createElement('canvas');
-      temp.width = manualLayerCanvas.width;
-      temp.height = manualLayerCanvas.height;
-      const tCtx = temp.getContext('2d');
-      tCtx.drawImage(manualLayerCanvas, 0, 0);
-
-      manualCtx.clearRect(0, 0, manualLayerCanvas.width, manualLayerCanvas.height);
-      manualCtx.save();
-      manualCtx.scale(-1, 1);
-      manualCtx.drawImage(temp, -manualLayerCanvas.width, 0);
-      manualCtx.restore();
-
-      computeGrayscale();
-      renderFullStencil();
+      processStencil();
     });
 
-    // Eszközváltók
     toolEraser.addEventListener('click', () => setTool('eraser'));
     toolBrush.addEventListener('click', () => setTool('brush'));
     toolPan.addEventListener('click', () => setTool('pan'));
@@ -604,35 +579,22 @@
       viewport.style.cursor = tool === 'pan' ? 'grab' : 'crosshair';
     }
 
-    // Csúszkák frissítése
-    [l1Thresh, l1Thick, l2Thresh, l2Opacity, lightboxSlider].forEach(el => {
-      el.addEventListener('input', () => {
-        l1ThreshVal.textContent = l1Thresh.value;
-        l1ThickVal.textContent = l1Thick.value;
-        l2ThreshVal.textContent = l2Thresh.value;
-        l2OpacityVal.textContent = l2Opacity.value + '%';
-        lightboxVal.textContent = lightboxSlider.value + '%';
-        renderFullStencil();
-      });
-    });
-    [l1Enable, l2Enable].forEach(el => el.addEventListener('change', renderFullStencil));
     brushSizeSlider.addEventListener('input', () => {
       brushSizeVal.textContent = brushSizeSlider.value + 'px';
     });
 
-    // Mentés (Mindig tiszta fehér alapon, az átvilágítás nélkül menti el a stencilt!)
     downloadBtn.addEventListener('click', () => {
       const currentLb = lightboxSlider.value;
       lightboxSlider.value = 0;
-      renderFullStencil();
+      processStencil();
 
       const link = document.createElement('a');
-      link.download = 'tetovalo_stencil_kesz.png';
+      link.download = 'sarkany_stencil_tiszta.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
 
       lightboxSlider.value = currentLb;
-      renderFullStencil();
+      processStencil();
     });
   </script>
 </body>
