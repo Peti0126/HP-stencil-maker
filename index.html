@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="hu">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HP Stencil Maker</title>
+  <title>HP Stencil Maker Pro</title>
   <style>
     :root {
       --bg: #121214;
@@ -24,25 +23,25 @@
       padding: 24px 16px;
       min-height: 100vh;
     }
-    header { text-align: center; margin-bottom: 24px; }
+    header { text-align: center; margin-bottom: 20px; }
     h1 { font-size: 1.8rem; margin-bottom: 6px; }
     p.sub { color: var(--muted); font-size: 0.95rem; }
 
     .container {
       width: 100%;
-      max-width: 900px;
+      max-width: 1000px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
     }
 
     .controls {
       background: var(--card);
-      padding: 20px;
+      padding: 18px 20px;
       border-radius: 12px;
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
+      gap: 16px;
       align-items: center;
       justify-content: space-between;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
@@ -74,19 +73,19 @@
     .sliders {
       display: flex;
       flex-wrap: wrap;
-      gap: 20px;
-      flex: 1;
-      min-width: 250px;
+      gap: 16px;
+      flex: 2;
+      min-width: 280px;
     }
     .slider-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
       flex: 1;
-      min-width: 140px;
+      min-width: 130px;
     }
     .slider-group label {
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
@@ -103,13 +102,13 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 400px;
+      min-height: 450px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
       overflow: hidden;
     }
     canvas {
       max-width: 100%;
-      max-height: 70vh;
+      max-height: 75vh;
       border-radius: 6px;
       background: white;
       box-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -119,8 +118,8 @@
 <body>
 
   <header>
-    <h1>✒️ HP Stencil Maker</h1>
-    <p class="sub">Tölts fel egy vázlatot vagy képet, és alakítsd át éles tetováló stencillé valós időben.</p>
+    <h1>✒️ HP Stencil Maker Pro</h1>
+    <p class="sub">Valós idejű éldetektálás és vonalrajz-generátor tetováló stencilekhez.</p>
   </header>
 
   <div class="container">
@@ -132,16 +131,20 @@
 
       <div class="sliders">
         <div class="slider-group">
-          <label>Küszöbérték (Részletesség): <span id="thresholdVal">128</span></label>
-          <input type="range" id="threshold" min="1" max="254" value="128">
+          <label>Vonal élesség / erősség: <span id="edgeStrengthVal">35</span></label>
+          <input type="range" id="edgeStrength" min="5" max="90" value="35">
         </div>
         <div class="slider-group">
-          <label>Kontraszt: <span id="contrastVal">0</span></label>
-          <input type="range" id="contrast" min="-100" max="100" value="0">
+          <label>Vonalvastagság: <span id="thicknessVal">1</span></label>
+          <input type="range" id="thickness" min="1" max="4" value="1" step="1">
+        </div>
+        <div class="slider-group">
+          <label>Simítás (Zajszűrés): <span id="smoothVal">1</span></label>
+          <input type="range" id="smooth" min="0" max="3" value="1">
         </div>
       </div>
 
-      <button id="downloadBtn" class="btn" style="background:#10b981;" disabled>💾 Mentés (Eredeti méretben)</button>
+      <button id="downloadBtn" class="btn" style="background:#10b981;" disabled>💾 Mentés (PNG)</button>
     </div>
 
     <div class="preview-box">
@@ -151,10 +154,12 @@
 
   <script>
     const imageLoader = document.getElementById('imageLoader');
-    const thresholdSlider = document.getElementById('threshold');
-    const contrastSlider = document.getElementById('contrast');
-    const thresholdVal = document.getElementById('thresholdVal');
-    const contrastVal = document.getElementById('contrastVal');
+    const edgeStrengthSlider = document.getElementById('edgeStrength');
+    const thicknessSlider = document.getElementById('thickness');
+    const smoothSlider = document.getElementById('smooth');
+    const edgeStrengthVal = document.getElementById('edgeStrengthVal');
+    const thicknessVal = document.getElementById('thicknessVal');
+    const smoothVal = document.getElementById('smoothVal');
     const downloadBtn = document.getElementById('downloadBtn');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -172,7 +177,7 @@
           originalImage = img;
           canvas.width = img.width;
           canvas.height = img.height;
-          processImage();
+          renderStencil();
           downloadBtn.disabled = false;
         };
         img.src = event.target.result;
@@ -180,51 +185,85 @@
       reader.readAsDataURL(file);
     });
 
-    function processImage() {
+    function renderStencil() {
       if (!originalImage) return;
 
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // 1. Eredeti kirajzolása és szürkeárnyalat készítése
       ctx.drawImage(originalImage, 0, 0);
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imgData.data;
+      const srcData = ctx.getImageData(0, 0, w, h);
+      const src = srcData.data;
 
-      const threshold = parseInt(thresholdSlider.value);
-      const contrast = parseInt(contrastSlider.value);
-      const factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
-
-      for (let i = 0; i < data.length; i += 4) {
-        // Kontraszt és szürkeárnyalat
-        let r = factor * (data[i] - 128) + 128;
-        let g = factor * (data[i+1] - 128) + 128;
-        let b = factor * (data[i+2] - 128) + 128;
-
-        // Fényerősség (luminance)
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-
-        // Fekete-fehér küszöbölés (binarization)
-        const val = gray < threshold ? 0 : 255;
-
-        data[i] = val;
-        data[i+1] = val;
-        data[i+2] = val;
+      const gray = new Float32Array(w * h);
+      for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+        gray[j] = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
       }
 
-      ctx.putImageData(imgData, 0, 0);
+      // 2. Sobel operátor az élek kinyerésére a kiválasztott lépésközzel (vastagság)
+      const step = parseInt(thicknessSlider.value, 10);
+      const threshold = parseInt(edgeStrengthSlider.value, 10);
+      const smooth = parseInt(smoothSlider.value, 10);
+
+      const outData = ctx.createImageData(w, h);
+      const out = outData.data;
+
+      for (let y = step; y < h - step; y++) {
+        for (let x = step; x < w - step; x++) {
+          const idx = y * w + x;
+
+          // Sobel gradiensek
+          const gx =
+            -1 * gray[(y - step) * w + (x - step)] +
+             1 * gray[(y - step) * w + (x + step)] +
+            -2 * gray[y * w + (x - step)] +
+             2 * gray[y * w + (x + step)] +
+            -1 * gray[(y + step) * w + (x - step)] +
+             1 * gray[(y + step) * w + (x + step)];
+
+          const gy =
+            -1 * gray[(y - step) * w + (x - step)] -
+             2 * gray[(y - step) * w + x] -
+             1 * gray[(y - step) * w + (x + step)] +
+             1 * gray[(y + step) * w + (x - step)] +
+             2 * gray[(y + step) * w + x] +
+             1 * gray[(y + step) * w + (x + step)];
+
+          let magnitude = Math.sqrt(gx * gx + gy * gy);
+
+          // Zajcsökkentés
+          if (smooth > 0 && magnitude < threshold * (smooth * 0.4)) {
+            magnitude = 0;
+          }
+
+          // Tetováló stencil hatás: Vonal = Fekete (0), Háttér = Fehér (255)
+          const pixelColor = magnitude > threshold ? 0 : 255;
+          const p = idx * 4;
+
+          out[p] = pixelColor;
+          out[p + 1] = pixelColor;
+          out[p + 2] = pixelColor;
+          out[p + 3] = 255;
+        }
+      }
+
+      ctx.putImageData(outData, 0, 0);
     }
 
-    thresholdSlider.addEventListener('input', () => {
-      thresholdVal.textContent = thresholdSlider.value;
-      processImage();
-    });
-
-    contrastSlider.addEventListener('input', () => {
-      contrastVal.textContent = contrastSlider.value;
-      processImage();
+    [edgeStrengthSlider, thicknessSlider, smoothSlider].forEach(slider => {
+      slider.addEventListener('input', () => {
+        edgeStrengthVal.textContent = edgeStrengthSlider.value;
+        thicknessVal.textContent = thicknessSlider.value;
+        smoothVal.textContent = smoothSlider.value;
+        renderStencil();
+      });
     });
 
     downloadBtn.addEventListener('click', () => {
       if (!originalImage) return;
       const link = document.createElement('a');
-      link.download = 'stencil_export.png';
+      link.download = 'tetovalo_stencil.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
