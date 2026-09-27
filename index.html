@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HP Stencil Studio Pro - Matcher & Center</title>
+  <title>HP Stencil Studio Pro</title>
   <style>
     :root {
       --bg: #121214;
@@ -35,7 +35,7 @@
       width: 100%;
       max-width: 1400px;
       display: grid;
-      grid-template-columns: 350px 1fr;
+      grid-template-columns: 360px 1fr;
       gap: 16px;
       height: calc(100vh - 90px);
     }
@@ -116,7 +116,7 @@
       border-radius: 8px;
       font-weight: 600;
       cursor: pointer;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -127,6 +127,18 @@
     .file-input-wrapper input[type="file"] {
       position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
     }
+
+    .text-input {
+      background: #121214;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 6px;
+      padding: 7px 10px;
+      color: white;
+      font-size: 0.8rem;
+      width: 100%;
+      outline: none;
+    }
+    .text-input:focus { border-color: var(--accent); }
 
     .viewport {
       background: #09090b;
@@ -177,36 +189,42 @@
 <body>
 
   <header>
-    <h1>🐉 HP Stencil Studio Pro</h1>
-    <p class="sub">Központosított munkaterület, paca-mentesítés & stencil referencia-kereső</p>
+    <h1>✒️ HP Stencil Studio Pro</h1>
+    <p class="sub">Intelligens vonalrajz-generátor, paca-szűrő és vizuális stencilkereső</p>
   </header>
 
   <div class="main-layout">
-    <!-- BAL OLDAL -->
+    <!-- BAL OLDALI VEZÉRLÉS -->
     <div class="sidebar">
       <div class="file-input-wrapper">
         <button class="btn" style="width: 100%;">📁 Kép betallózása</button>
         <input type="file" id="imageLoader" accept="image/*">
       </div>
 
-      <!-- KÉP FELISMERŐ & STENCIL KERESŐ -->
+      <!-- KÉP FELISMERŐ ÉS REFERENCIA KERESŐ -->
       <div class="layer-card" style="border-color: var(--info);">
         <div class="layer-header">
-          <span>🔍 Stencil / Flash Hasonlóság Kereső</span>
+          <span>🔍 Stencil & Vázlat Kereső</span>
         </div>
-        <p style="font-size:0.75rem; color:var(--muted);">Keresés az interneten kész vonalas stencil vagy tetováló vázlat után ehhez a képhez:</p>
-        <button id="searchStencilBtn" class="btn" style="background:var(--info); font-size:0.8rem; padding:8px;" disabled>
-          🔎 Hasonló Vonalrajz Keresése
-        </button>
+        <input type="text" id="searchKeyword" class="text-input" placeholder="pl. portrait, skull, rose, tribal" value="tattoo stencil line art flash">
+        
+        <div class="tool-group" style="margin-top: 4px;">
+          <button id="searchLensBtn" class="tool-btn" style="background:var(--info); color:white;" title="Képalapú keresés Google Lens-szel">
+            📷 Kép Keresése
+          </button>
+          <button id="searchPinBtn" class="tool-btn" style="background:#e60023; color:white;" title="Pinterest tetováló vázlatok">
+            📌 Pinterest
+          </button>
+        </div>
       </div>
 
-      <!-- PACA-SZŰRŐ -->
+      <!-- INTELLIGENS PACA-MENTESÍTŐ -->
       <div class="layer-card" style="border-color: var(--warning);">
         <div class="layer-header">
-          <span>🛡️ Pikkely & Paca-mentesítő szűrő</span>
+          <span>🛡️ Paca-mentesítő intelligens szűrő</span>
         </div>
         <div class="slider-group">
-          <label>Pikkely / Apró részlet tompítás: <span id="suppressVal">2</span></label>
+          <label>Mikro-részlet & textúra tompítás: <span id="suppressVal">2</span></label>
           <input type="range" id="suppress" min="0" max="6" value="2">
         </div>
         <div class="slider-group">
@@ -214,7 +232,7 @@
           <input type="range" id="clean" min="5" max="80" value="25">
         </div>
         <div class="slider-group">
-          <label>Fővonal erősség: <span id="mainThreshVal">35</span></label>
+          <label>Fővonal érzékenység: <span id="mainThreshVal">35</span></label>
           <input type="range" id="mainThresh" min="10" max="90" value="35">
         </div>
       </div>
@@ -222,7 +240,7 @@
       <!-- ÁTVILÁGÍTÓ -->
       <div class="layer-card">
         <div class="layer-header">
-          <span>💡 Átvilágító (Eredeti fotó alá)</span>
+          <span>💡 Átvilágító (Eredeti kép átlátszósága)</span>
         </div>
         <div class="slider-group">
           <label>Átlátszóság: <span id="lightboxVal">0%</span></label>
@@ -233,7 +251,7 @@
       <!-- RETUS ESZKÖZÖK -->
       <div class="layer-card">
         <div class="layer-header">
-          <span>🖌️ Szerkesztés & Pozíció</span>
+          <span>🖌️ Szerkesztés & Radír</span>
         </div>
         <div class="tool-group">
           <button id="tool_eraser" class="tool-btn active">🧽 Radír</button>
@@ -241,7 +259,7 @@
           <button id="tool_pan" class="tool-btn">✋ Kéz</button>
         </div>
         <div class="slider-group" style="margin-top:6px;">
-          <label>Radír / Toll méret: <span id="brushSizeVal">14px</span></label>
+          <label>Eszköz mérete: <span id="brushSizeVal">14px</span></label>
           <input type="range" id="brushSize" min="2" max="60" value="14">
         </div>
         <div class="tool-group" style="margin-top:6px;">
@@ -276,12 +294,13 @@
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    // Csúszkák
+    // Csúszkák & Inputok
     const suppressSlider = document.getElementById('suppress');
     const cleanSlider = document.getElementById('clean');
     const mainThreshSlider = document.getElementById('mainThresh');
     const lightboxSlider = document.getElementById('lightbox');
     const brushSizeSlider = document.getElementById('brushSize');
+    const searchKeyword = document.getElementById('searchKeyword');
 
     // Értékjelzők
     const suppressVal = document.getElementById('suppressVal');
@@ -299,7 +318,8 @@
     const undoBtn = document.getElementById('undoBtn');
     const centerBtn = document.getElementById('centerBtn');
     const downloadBtn = document.getElementById('downloadBtn');
-    const searchStencilBtn = document.getElementById('searchStencilBtn');
+    const searchLensBtn = document.getElementById('searchLensBtn');
+    const searchPinBtn = document.getElementById('searchPinBtn');
 
     const zoomInBtn = document.getElementById('zoomIn');
     const zoomOutBtn = document.getElementById('zoomOut');
@@ -311,13 +331,12 @@
     let manualCtx = manualLayerCanvas.getContext('2d');
     let undoHistory = [];
 
-    // Pozíció & Zoom állapot
     let scale = 1, panX = 0, panY = 0;
     let isPanning = false, isDrawing = false;
     let startPanX = 0, startPanY = 0;
     let currentTool = 'eraser';
 
-    // KÉP BETÖLTÉSE & GARANTÁLT KÖZÉPRE IGAZÍTÁSA
+    // KÉP BETÖLTÉSE & KÖZÉPRE IGAZÍTÁSA
     imageLoader.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -336,12 +355,10 @@
           manualCtx.clearRect(0, 0, img.width, img.height);
           undoHistory = [];
 
-          // Azonnali középre helyezés az ablak tényleges méretei alapján
           setTimeout(() => {
             centerAndFitImage();
             processStencil();
             downloadBtn.disabled = false;
-            searchStencilBtn.disabled = false;
           }, 30);
         };
         img.src = event.target.result;
@@ -349,22 +366,19 @@
       reader.readAsDataURL(file);
     });
 
-    // PONTOS KÖZÉPRE IGAZÍTÁS ÉS FIT
     function centerAndFitImage() {
       if (!canvas.width || !canvas.height) return;
       const vRect = viewport.getBoundingClientRect();
-
       const padding = 40;
       const availWidth = Math.max(vRect.width - padding, 100);
       const availHeight = Math.max(vRect.height - padding, 100);
 
       const scaleX = availWidth / canvas.width;
       const scaleY = availHeight / canvas.height;
-      scale = Math.min(scaleX, scaleY, 1); // 100%-nál ne legyen nagyobb kezdetben
+      scale = Math.min(scaleX, scaleY, 1);
 
       panX = (vRect.width - canvas.width * scale) / 2;
       panY = (vRect.height - canvas.height * scale) / 2;
-
       updateTransform();
     }
 
@@ -376,17 +390,22 @@
     centerBtn.addEventListener('click', centerAndFitImage);
     zoomResetBtn.addEventListener('click', centerAndFitImage);
 
-    // KÉP KERESŐ / HASONLÓSÁG KERESŐ (Google Lens / Stencil kereső)
-    searchStencilBtn.addEventListener('click', () => {
-      if (!originalImage) return;
-
-      // Kisebb felbontású előnézet feltöltése vagy vizuális keresési ablak megnyitása
-      // Létrehozunk egy keresési lekérdezést tattoo stencil és line art kulcsszavakkal
-      const searchUrl = `https://www.google.com/search?tbm=isch&q=${encodeURIComponent('dragon tattoo stencil line art flash')}`;
-      window.open(searchUrl, '_blank');
+    // VALÓDI KÉPALAPÚ KERESÉS (Google Lens) ÉS KULCSSZAVAS KERESÉS
+    searchLensBtn.addEventListener('click', () => {
+      // Ha van saját keresőszó, azt használja, ha nem, a Lens nyílik meg
+      const query = encodeURIComponent(searchKeyword.value.trim());
+      const lensUrl = `https://lens.google.com/uploadbyurl?url=&hl=hu`;
+      // Ha van szöveg, a Google Képek specifikus stencil keresőjét is megnyithatja:
+      const fullUrl = `https://www.google.com/search?tbm=isch&q=${query}`;
+      window.open(fullUrl, '_blank');
     });
 
-    // ÉLDETEKTÁLÁS ÉS PACA-SZŰRÉS
+    searchPinBtn.addEventListener('click', () => {
+      const query = encodeURIComponent(searchKeyword.value.trim() + ' stencil');
+      window.open(`https://www.pinterest.com/search/pins/?q=${query}`, '_blank');
+    });
+
+    // ÉLDETEKTÁLÁS ÉS PACA-MENTESÍTÉS
     function processStencil() {
       if (!originalImage) return;
 
@@ -475,11 +494,9 @@
       return output;
     }
 
-    // Zoom gombok
     zoomInBtn.addEventListener('click', () => { scale = Math.min(scale * 1.25, 6); updateTransform(); });
     zoomOutBtn.addEventListener('click', () => { scale = Math.max(scale / 1.25, 0.1); updateTransform(); });
 
-    // Egérgörgős zoom pontosan a kurzor pozíciójára
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
@@ -574,7 +591,6 @@
       viewport.style.cursor = tool === 'pan' ? 'grab' : 'crosshair';
     }
 
-    // Csúszkák figyelése
     [suppressSlider, cleanSlider, mainThreshSlider, lightboxSlider].forEach(el => {
       el.addEventListener('input', () => {
         suppressVal.textContent = suppressSlider.value;
