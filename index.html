@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HP Stencil Maker Pro</title>
+  <title>HP Stencil Studio - Multi-Layer</title>
   <style>
     :root {
       --bg: #121214;
@@ -11,6 +11,8 @@
       --accent: #6366f1;
       --text: #f3f4f6;
       --muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #10b981;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,72 +22,59 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 24px 16px;
+      padding: 20px 16px;
       min-height: 100vh;
     }
-    header { text-align: center; margin-bottom: 20px; }
-    h1 { font-size: 1.8rem; margin-bottom: 6px; }
-    p.sub { color: var(--muted); font-size: 0.95rem; }
+    header { text-align: center; margin-bottom: 16px; }
+    h1 { font-size: 1.8rem; }
+    p.sub { color: var(--muted); font-size: 0.9rem; }
 
-    .container {
+    .main-layout {
       width: 100%;
-      max-width: 1000px;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px) {
+      .main-layout { grid-template-columns: 1fr; }
+    }
+
+    .sidebar {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-    }
-
-    .controls {
-      background: var(--card);
-      padding: 18px 20px;
-      border-radius: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      align-items: center;
-      justify-content: space-between;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-    }
-    .file-input-wrapper {
-      position: relative;
-      display: inline-block;
-    }
-    .btn {
-      background: var(--accent);
-      color: white;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: opacity 0.2s;
-    }
-    .btn:hover { opacity: 0.9; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    input[type="file"] {
-      position: absolute;
-      left: 0; top: 0; opacity: 0;
-      width: 100%; height: 100%;
-      cursor: pointer;
+      height: fit-content;
     }
 
-    .sliders {
+    .layer-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 12px;
       display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      flex: 2;
-      min-width: 280px;
+      flex-direction: column;
+      gap: 10px;
     }
+    .layer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
     .slider-group {
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      flex: 1;
-      min-width: 130px;
+      gap: 4px;
     }
     .slider-group label {
-      font-size: 0.8rem;
+      font-size: 0.75rem;
       color: var(--muted);
       display: flex;
       justify-content: space-between;
@@ -95,77 +84,177 @@
       cursor: pointer;
     }
 
-    .preview-box {
+    .tool-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tool-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+      background: #2a2a32;
+      color: var(--text);
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+    .tool-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .file-input-wrapper { position: relative; width: 100%; }
+    .file-input-wrapper input[type="file"] {
+      position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;
+    }
+
+    .canvas-container {
       background: var(--card);
       border-radius: 12px;
       padding: 16px;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 450px;
+      min-height: 550px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      overflow: hidden;
+      position: relative;
+      overflow: auto;
     }
     canvas {
       max-width: 100%;
-      max-height: 75vh;
-      border-radius: 6px;
+      max-height: 80vh;
       background: white;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      border-radius: 6px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      cursor: crosshair;
     }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>✒️ HP Stencil Maker Pro</h1>
-    <p class="sub">Valós idejű éldetektálás és vonalrajz-generátor tetováló stencilekhez.</p>
+    <h1>✒️ HP Stencil Studio Pro</h1>
+    <p class="sub">Többrétegű intelligens tetováló vonalrajz-előkészítő & retusáló eszköz</p>
   </header>
 
-  <div class="container">
-    <div class="controls">
+  <div class="main-layout">
+    <!-- BAL OLDALI VEZÉRLŐPULT -->
+    <div class="sidebar">
       <div class="file-input-wrapper">
-        <button class="btn">📁 Kép betallózása</button>
+        <button class="btn" style="width: 100%;">📁 Kép betallózása</button>
         <input type="file" id="imageLoader" accept="image/*">
       </div>
 
-      <div class="sliders">
-        <div class="slider-group">
-          <label>Vonal élesség / erősség: <span id="edgeStrengthVal">35</span></label>
-          <input type="range" id="edgeStrength" min="5" max="90" value="35">
+      <!-- 1. RÉTEG: FŐ KONTÚR -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <span>1. Fő körvonalak (Vastag tű)</span>
+          <input type="checkbox" id="layer1_enable" checked>
         </div>
         <div class="slider-group">
-          <label>Vonalvastagság: <span id="thicknessVal">1</span></label>
-          <input type="range" id="thickness" min="1" max="4" value="1" step="1">
+          <label>Érzékenység: <span id="l1_thresh_val">40</span></label>
+          <input type="range" id="l1_thresh" min="10" max="100" value="40">
         </div>
         <div class="slider-group">
-          <label>Simítás (Zajszűrés): <span id="smoothVal">1</span></label>
-          <input type="range" id="smooth" min="0" max="3" value="1">
+          <label>Vonalvastagság: <span id="l1_thick_val">2</span></label>
+          <input type="range" id="l1_thick" min="1" max="4" value="2">
         </div>
       </div>
 
-      <button id="downloadBtn" class="btn" style="background:#10b981;" disabled>💾 Mentés (PNG)</button>
+      <!-- 2. RÉTEG: RÉSZLETEK -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <span>2. Mikrorészletek (Finom tű)</span>
+          <input type="checkbox" id="layer2_enable" checked>
+        </div>
+        <div class="slider-group">
+          <label>Részlet erősség: <span id="l2_thresh_val">25</span></label>
+          <input type="range" id="l2_thresh" min="5" max="80" value="25">
+        </div>
+        <div class="slider-group">
+          <label>Átlátszatlanság (Sűrűség): <span id="l2_opacity_val">70%</span></label>
+          <input type="range" id="l2_opacity" min="0" max="100" value="70">
+        </div>
+      </div>
+
+      <!-- KÉZI RETUS ESZKÖZÖK -->
+      <div class="layer-card">
+        <div class="layer-header">
+          <span>🖌️ Kézi tisztítás & Radír</span>
+        </div>
+        <div class="tool-group">
+          <button id="tool_eraser" class="tool-btn active">🧽 Radír</button>
+          <button id="tool_brush" class="tool-btn">✏️ Toll</button>
+        </div>
+        <div class="slider-group">
+          <label>Eszköz mérete: <span id="brushSizeVal">12px</span></label>
+          <input type="range" id="brushSize" min="2" max="60" value="12">
+        </div>
+        <button id="undoBtn" class="tool-btn" style="background:#374151;">↩️ Visszavonás</button>
+      </div>
+
+      <button id="downloadBtn" class="btn" style="background:var(--success);" disabled>💾 Mentés Stencilként (PNG)</button>
     </div>
 
-    <div class="preview-box">
+    <!-- JOBB OLDALI VÁSZON -->
+    <div class="canvas-container">
       <canvas id="canvas"></canvas>
     </div>
   </div>
 
   <script>
     const imageLoader = document.getElementById('imageLoader');
-    const edgeStrengthSlider = document.getElementById('edgeStrength');
-    const thicknessSlider = document.getElementById('thickness');
-    const smoothSlider = document.getElementById('smooth');
-    const edgeStrengthVal = document.getElementById('edgeStrengthVal');
-    const thicknessVal = document.getElementById('thicknessVal');
-    const smoothVal = document.getElementById('smoothVal');
-    const downloadBtn = document.getElementById('downloadBtn');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-    let originalImage = null;
+    // Réteg vezérlők
+    const l1Enable = document.getElementById('layer1_enable');
+    const l1Thresh = document.getElementById('l1_thresh');
+    const l1Thick = document.getElementById('l1_thick');
+    const l2Enable = document.getElementById('layer2_enable');
+    const l2Thresh = document.getElementById('l2_thresh');
+    const l2Opacity = document.getElementById('l2_opacity');
 
+    // Értékjelzők
+    const l1ThreshVal = document.getElementById('l1_thresh_val');
+    const l1ThickVal = document.getElementById('l1_thick_val');
+    const l2ThreshVal = document.getElementById('l2_thresh_val');
+    const l2OpacityVal = document.getElementById('l2_opacity_val');
+    const brushSizeVal = document.getElementById('brushSizeVal');
+
+    // Eszközök
+    const toolEraser = document.getElementById('tool_eraser');
+    const toolBrush = document.getElementById('tool_brush');
+    const brushSizeSlider = document.getElementById('brushSize');
+    const undoBtn = document.getElementById('undoBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let originalImage = null;
+    let grayData = null;
+    let manualLayerCanvas = document.createElement('canvas'); // Kézi rajz/radír réteg
+    let manualCtx = manualLayerCanvas.getContext('2d');
+    let undoHistory = [];
+    let isDrawing = false;
+    let currentTool = 'eraser'; // 'eraser' | 'brush'
+
+    // Kép betöltése
     imageLoader.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
@@ -177,7 +266,15 @@
           originalImage = img;
           canvas.width = img.width;
           canvas.height = img.height;
-          renderStencil();
+
+          manualLayerCanvas.width = img.width;
+          manualLayerCanvas.height = img.height;
+          manualCtx.clearRect(0, 0, img.width, img.height);
+          undoHistory = [];
+
+          // Szürkeárnyalatos térkép kiszámítása egyszer
+          computeGrayscale();
+          renderFullStencil();
           downloadBtn.disabled = false;
         };
         img.src = event.target.result;
@@ -185,85 +282,181 @@
       reader.readAsDataURL(file);
     });
 
-    function renderStencil() {
-      if (!originalImage) return;
+    function computeGrayscale() {
+      ctx.drawImage(originalImage, 0, 0);
+      const src = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      grayData = new Float32Array(canvas.width * canvas.height);
+      for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+        grayData[j] = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+      }
+    }
+
+    // Sobel éldetektálás adott paraméterekkel
+    function computeEdgeMask(threshold, step) {
+      const w = canvas.width;
+      const h = canvas.height;
+      const mask = new Uint8Array(w * h);
+
+      for (let y = step; y < h - step; y++) {
+        for (let x = step; x < w - step; x++) {
+          const gx =
+            -1 * grayData[(y - step) * w + (x - step)] +
+             1 * grayData[(y - step) * w + (x + step)] +
+            -2 * grayData[y * w + (x - step)] +
+             2 * grayData[y * w + (x + step)] +
+            -1 * grayData[(y + step) * w + (x - step)] +
+             1 * grayData[(y + step) * w + (x + step)];
+
+          const gy =
+            -1 * grayData[(y - step) * w + (x - step)] -
+             2 * grayData[(y - step) * w + x] -
+             1 * grayData[(y - step) * w + (x + step)] +
+             1 * grayData[(y + step) * w + (x - step)] +
+             2 * grayData[(y + step) * w + x] +
+             1 * grayData[(y + step) * w + (x + step)];
+
+          const mag = Math.sqrt(gx * gx + gy * gy);
+          if (mag > threshold) {
+            mask[y * w + x] = 1; // Él van itt
+          }
+        }
+      }
+      return mask;
+    }
+
+    // Fő kompozíció összerakása
+    function renderFullStencil() {
+      if (!grayData) return;
 
       const w = canvas.width;
       const h = canvas.height;
 
-      // 1. Eredeti kirajzolása és szürkeárnyalat készítése
-      ctx.drawImage(originalImage, 0, 0);
-      const srcData = ctx.getImageData(0, 0, w, h);
-      const src = srcData.data;
+      // Fehér alap
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
 
-      const gray = new Float32Array(w * h);
-      for (let i = 0, j = 0; i < src.length; i += 4, j++) {
-        gray[j] = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
-      }
-
-      // 2. Sobel operátor az élek kinyerésére a kiválasztott lépésközzel (vastagság)
-      const step = parseInt(thicknessSlider.value, 10);
-      const threshold = parseInt(edgeStrengthSlider.value, 10);
-      const smooth = parseInt(smoothSlider.value, 10);
-
-      const outData = ctx.createImageData(w, h);
+      const outData = ctx.getImageData(0, 0, w, h);
       const out = outData.data;
 
-      for (let y = step; y < h - step; y++) {
-        for (let x = step; x < w - step; x++) {
-          const idx = y * w + x;
+      // 1. Réteg (Fő kontúr)
+      const l1Active = l1Enable.checked;
+      const mask1 = l1Active ? computeEdgeMask(parseInt(l1Thresh.value), parseInt(l1Thick.value)) : null;
 
-          // Sobel gradiensek
-          const gx =
-            -1 * gray[(y - step) * w + (x - step)] +
-             1 * gray[(y - step) * w + (x + step)] +
-            -2 * gray[y * w + (x - step)] +
-             2 * gray[y * w + (x + step)] +
-            -1 * gray[(y + step) * w + (x - step)] +
-             1 * gray[(y + step) * w + (x + step)];
+      // 2. Réteg (Részletek)
+      const l2Active = l2Enable.checked;
+      const mask2 = l2Active ? computeEdgeMask(parseInt(l2Thresh.value), 1) : null;
+      const l2Alpha = parseInt(l2Opacity.value) / 100;
 
-          const gy =
-            -1 * gray[(y - step) * w + (x - step)] -
-             2 * gray[(y - step) * w + x] -
-             1 * gray[(y - step) * w + (x + step)] +
-             1 * gray[(y + step) * w + (x - step)] +
-             2 * gray[(y + step) * w + x] +
-             1 * gray[(y + step) * w + (x + step)];
+      for (let i = 0; i < w * h; i++) {
+        let isBlack = false;
+        let intensity = 255;
 
-          let magnitude = Math.sqrt(gx * gx + gy * gy);
-
-          // Zajcsökkentés
-          if (smooth > 0 && magnitude < threshold * (smooth * 0.4)) {
-            magnitude = 0;
-          }
-
-          // Tetováló stencil hatás: Vonal = Fekete (0), Háttér = Fehér (255)
-          const pixelColor = magnitude > threshold ? 0 : 255;
-          const p = idx * 4;
-
-          out[p] = pixelColor;
-          out[p + 1] = pixelColor;
-          out[p + 2] = pixelColor;
-          out[p + 3] = 255;
+        if (mask1 && mask1[i]) {
+          intensity = 0; // Teljes fekete
+        } else if (mask2 && mask2[i]) {
+          intensity = Math.round(255 - (255 * l2Alpha)); // Halványabb/sűrűség szerinti
         }
+
+        const p = i * 4;
+        out[p] = intensity;
+        out[p + 1] = intensity;
+        out[p + 2] = intensity;
+        out[p + 3] = 255;
       }
 
       ctx.putImageData(outData, 0, 0);
+
+      // Kézi retus réteg ráhelyezése a tetejére
+      ctx.drawImage(manualLayerCanvas, 0, 0);
     }
 
-    [edgeStrengthSlider, thicknessSlider, smoothSlider].forEach(slider => {
-      slider.addEventListener('input', () => {
-        edgeStrengthVal.textContent = edgeStrengthSlider.value;
-        thicknessVal.textContent = thicknessSlider.value;
-        smoothVal.textContent = smoothSlider.value;
-        renderStencil();
+    // Csúszkák eseménykezelői
+    [l1Thresh, l1Thick, l2Thresh, l2Opacity].forEach(el => {
+      el.addEventListener('input', () => {
+        l1ThreshVal.textContent = l1Thresh.value;
+        l1ThickVal.textContent = l1Thick.value;
+        l2ThreshVal.textContent = l2Thresh.value;
+        l2OpacityVal.textContent = l2Opacity.value + '%';
+        renderFullStencil();
       });
     });
+    [l1Enable, l2Enable].forEach(el => el.addEventListener('change', renderFullStencil));
 
+    // Eszközváltás
+    toolEraser.addEventListener('click', () => {
+      currentTool = 'eraser';
+      toolEraser.classList.add('active');
+      toolBrush.classList.remove('active');
+    });
+    toolBrush.addEventListener('click', () => {
+      currentTool = 'brush';
+      toolBrush.classList.add('active');
+      toolEraser.classList.remove('active');
+    });
+    brushSizeSlider.addEventListener('input', () => {
+      brushSizeVal.textContent = brushSizeSlider.value + 'px';
+    });
+
+    // Kézi rajzolás / radírozás
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      return {
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
+      };
+    }
+
+    function saveUndoState() {
+      if (undoHistory.length > 10) undoHistory.shift();
+      undoHistory.push(manualCtx.getImageData(0, 0, manualLayerCanvas.width, manualLayerCanvas.height));
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (!grayData) return;
+      isDrawing = true;
+      saveUndoState();
+      drawStroke(e);
+    });
+
+    window.addEventListener('mouseup', () => { isDrawing = false; });
+
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isDrawing) return;
+      drawStroke(e);
+    });
+
+    function drawStroke(e) {
+      const pos = getCanvasCoords(e);
+      const size = parseInt(brushSizeSlider.value, 10);
+
+      manualCtx.beginPath();
+      manualCtx.arc(pos.x, pos.y, size / 2, 0, Math.PI * 2);
+
+      if (currentTool === 'eraser') {
+        manualCtx.fillStyle = '#ffffff'; // Tiszta fehérrel letakarja az indigót
+      } else {
+        manualCtx.fillStyle = '#000000'; // Fekete vonalhúzás
+      }
+      manualCtx.fill();
+
+      renderFullStencil();
+    }
+
+    // Visszavonás
+    undoBtn.addEventListener('click', () => {
+      if (undoHistory.length > 0) {
+        const last = undoHistory.pop();
+        manualCtx.putImageData(last, 0, 0);
+        renderFullStencil();
+      }
+    });
+
+    // Mentés
     downloadBtn.addEventListener('click', () => {
-      if (!originalImage) return;
       const link = document.createElement('a');
-      link.download = 'tetovalo_stencil.png';
+      link.download = 'hp_stencil_ready.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
     });
